@@ -13,5 +13,10 @@ data class CarUiState(
     val carYear: String = "",
     val carLicensePlate: String = "",
     val carInitialMileage: String = "",
-    val carMileage: String = ""
+    val carMileage: String = "",
+    val carNameError: String? = null,
+    val carManufacturerError: String? = null,
+    val carModelError: String? = null,
+    val carYearError: String? = null,
+    val carMileageError: String? = null
 )

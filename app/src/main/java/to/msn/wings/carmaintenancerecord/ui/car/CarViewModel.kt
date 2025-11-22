@@ -90,44 +90,72 @@ class CarViewModel @Inject constructor(
     fun saveCar() {
         val currentState = _uiState.value
 
-        // バリデーション
+        _uiState.update {
+            it.copy(
+                carNameError = null,
+                carManufacturerError = null,
+                carModelError = null,
+                carYearError = null,
+                carMileageError = null
+            )
+        }
+
+        var hasError = false
+
         if (currentState.carName.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "車名を入力してください") }
-            return
+            _uiState.update { it.copy(carNameError = "愛車の名前を入力してください") }
+            hasError = true
         }
 
         if (currentState.carManufacturer.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "メーカーを入力してください") }
-            return
+            _uiState.update { it.copy(carManufacturerError = "メーカーを選択してください") }
+            hasError = true
         }
 
         if (currentState.carModel.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "車種を入力してください") }
-            return
+            _uiState.update { it.copy(carModelError = "車種を入力してください") }
+            hasError = true
         }
 
-        val year = currentState.carYear.toIntOrNull()
-        if (year == null || year < 1900 || year > 2100) {
-            _uiState.update { it.copy(errorMessage = "正しい年式を入力してください") }
-            return
+        val year = if (currentState.carYear.isBlank()) {
+            _uiState.update { it.copy(carYearError = "年式を入力してください") }
+            hasError = true
+            null
+        } else {
+            currentState.carYear.toIntOrNull().also {
+                if (it == null || it < 1900 || it > 2100) {
+                    _uiState.update { state -> state.copy(carYearError = "正しい年式を入力してください（1900〜2100）") }
+                    hasError = true
+                }
+            }
         }
 
-        val initialMileage = currentState.carInitialMileage.toIntOrNull() ?: 0
-        if (initialMileage < 0) {
-            _uiState.update { it.copy(errorMessage = "正しい納車時走行距離を入力してください") }
-            return
+        val initialMileage = if (currentState.carInitialMileage.isNotBlank()) {
+            currentState.carInitialMileage.toIntOrNull().also {
+                if (it == null || it < 0) {
+                    _uiState.update { state -> state.copy(errorMessage = "正しい納車時走行距離を入力してください") }
+                    hasError = true
+                }
+            } ?: 0
+        } else {
+            0
         }
 
-        val mileage = currentState.carMileage.toIntOrNull()
-        if (mileage == null || mileage < 0) {
-            _uiState.update { it.copy(errorMessage = "正しい走行距離を入力してください") }
-            return
+        val mileage = if (currentState.carMileage.isNotBlank()) {
+            currentState.carMileage.toIntOrNull().also {
+                if (it == null || it < 0) {
+                    _uiState.update { state -> state.copy(carMileageError = "走行距離は数字で入力してください") }
+                    hasError = true
+                } else if (initialMileage > 0 && it < initialMileage) {
+                    _uiState.update { state -> state.copy(carMileageError = "現在の走行距離は納車時より少なくできません") }
+                    hasError = true
+                }
+            } ?: 0
+        } else {
+            0
         }
 
-        if (mileage < initialMileage) {
-            _uiState.update { it.copy(errorMessage = "現在の走行距離は納車時より少なくできません") }
-            return
-        }
+        if (hasError) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, errorMessage = null) }
@@ -137,7 +165,7 @@ class CarViewModel @Inject constructor(
                     name = currentState.carName,
                     manufacturer = currentState.carManufacturer,
                     model = currentState.carModel,
-                    year = year,
+                    year = year ?: 0,
                     licensePlate = currentState.carLicensePlate.ifBlank { null },
                     initialMileage = initialMileage,
                     mileage = mileage,
