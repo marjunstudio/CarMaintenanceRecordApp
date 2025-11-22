@@ -47,10 +47,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import to.msn.wings.carmaintenancerecord.ui.theme.CarMaintenanceRecordTheme
 
 @Composable
-fun CarScreen(
+fun CarEditScreen(
     onNavigateToMaintenanceList: (Long) -> Unit = {},
     onNavigateBack: () -> Unit = {},
-    viewModel: CarViewModel = hiltViewModel()
+    viewModel: CarEditViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -62,7 +62,7 @@ fun CarScreen(
         }
     }
 
-    CarScreenContent(
+    CarEditScreenContent(
         uiState = uiState,
         snackbarHostState = snackbarHostState,
         onNavigateBack = onNavigateBack,
@@ -79,8 +79,8 @@ fun CarScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CarScreenContent(
-    uiState: CarUiState,
+private fun CarEditScreenContent(
+    uiState: CarEditUiState,
     snackbarHostState: SnackbarHostState,
     onNavigateBack: () -> Unit,
     onCarNameChanged: (String) -> Unit,
@@ -367,10 +367,10 @@ private fun FormField(
 
 @Preview(name = "新規登録画面", showBackground = true)
 @Composable
-private fun CarScreenPreview_New() {
+private fun CarEditScreenPreview_New() {
     CarMaintenanceRecordTheme {
-        CarScreenContent(
-            uiState = CarUiState(
+        CarEditScreenContent(
+            uiState = CarEditUiState(
                 car = null,
                 isLoading = false,
                 isSaving = false,
@@ -399,10 +399,10 @@ private fun CarScreenPreview_New() {
 
 @Preview(name = "エラー表示", showBackground = true)
 @Composable
-private fun CarScreenPreview_WithErrors() {
+private fun CarEditScreenPreview_WithErrors() {
     CarMaintenanceRecordTheme {
-        CarScreenContent(
-            uiState = CarUiState(
+        CarEditScreenContent(
+            uiState = CarEditUiState(
                 car = null,
                 isLoading = false,
                 isSaving = false,

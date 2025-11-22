@@ -15,14 +15,14 @@ import to.msn.wings.carmaintenancerecord.domain.usecase.UpdateMileageUseCase
 import javax.inject.Inject
 
 @HiltViewModel
-class CarViewModel @Inject constructor(
+class CarEditViewModel @Inject constructor(
     private val getCarUseCase: GetCarUseCase,
     private val saveCarUseCase: SaveCarUseCase,
     private val updateMileageUseCase: UpdateMileageUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CarUiState())
-    val uiState: StateFlow<CarUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(CarEditUiState())
+    val uiState: StateFlow<CarEditUiState> = _uiState.asStateFlow()
 
     init {
         loadCar()

@@ -2,7 +2,7 @@ package to.msn.wings.carmaintenancerecord.ui.car
 
 import to.msn.wings.carmaintenancerecord.domain.model.Car
 
-data class CarUiState(
+data class CarEditUiState(
     val car: Car? = null,
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,

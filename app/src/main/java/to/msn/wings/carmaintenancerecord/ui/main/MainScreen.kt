@@ -20,7 +20,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import to.msn.wings.carmaintenancerecord.ui.car.CarScreen
+import to.msn.wings.carmaintenancerecord.ui.car.CarDetailScreen
+import to.msn.wings.carmaintenancerecord.ui.car.CarEditScreen
 import to.msn.wings.carmaintenancerecord.ui.maintenance.MaintenanceDetailScreen
 import to.msn.wings.carmaintenancerecord.ui.maintenance.MaintenanceListScreen
 import to.msn.wings.carmaintenancerecord.ui.navigation.Screen
@@ -33,8 +34,8 @@ fun MainScreen() {
 
     val bottomNavItems = listOf(
         BottomNavItem(
-            route = Screen.Car.route,
-            label = "車両",
+            route = Screen.CarDetail.route,
+            label = "ガレージ",
             icon = Icons.Default.DirectionsCar
         ),
         BottomNavItem(
@@ -87,11 +88,28 @@ fun MainScreen() {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Car.route,
+            startDestination = Screen.CarDetail.route,
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable(route = Screen.Car.route) {
-                CarScreen(
+            composable(route = Screen.CarDetail.route) {
+                CarDetailScreen(
+                    onNavigateToCarEdit = {
+                        navController.navigate(Screen.CarEdit.route)
+                    },
+                    onNavigateToMaintenanceAdd = {
+                        navController.navigate(Screen.MaintenanceDetail.createRoute(1L))
+                    },
+                    onNavigateToMaintenanceList = {
+                        navController.navigate(Screen.MaintenanceList.createRoute(1L))
+                    },
+                    onNavigateToMileageUpdate = {
+                        navController.navigate(Screen.CarEdit.route)
+                    }
+                )
+            }
+
+            composable(route = Screen.CarEdit.route) {
+                CarEditScreen(
                     onNavigateToMaintenanceList = { carId ->
                         navController.navigate(Screen.MaintenanceList.createRoute(carId))
                     },
