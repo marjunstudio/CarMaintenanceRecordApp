@@ -45,6 +45,9 @@ fun AppNavGraph(
             CarScreen(
                 onNavigateToMaintenanceList = { carId ->
                     navController.navigate(Screen.MaintenanceList.createRoute(carId))
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }

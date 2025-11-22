@@ -1,31 +1,36 @@
 package to.msn.wings.carmaintenancerecord.ui.maintenance
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,6 +50,7 @@ import to.msn.wings.carmaintenancerecord.util.formatTimestamp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaintenanceListScreen(
+    onNavigateBack: () -> Unit = {},
     onNavigateToDetail: (Long) -> Unit = {},
     onNavigateToAdd: () -> Unit = {},
     viewModel: MaintenanceListViewModel = hiltViewModel()
@@ -62,8 +68,16 @@ fun MaintenanceListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("メンテナンス履歴") }
+            CenterAlignedTopAppBar(
+                title = { Text("メンテナンス履歴") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "戻る"
+                        )
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -109,7 +123,7 @@ fun MaintenanceListScreen(
 }
 
 /**
- * メンテナンス履歴リスト
+ * メンテナンス履歴リスト（タイムライン形式）
  */
 @Composable
 private fun MaintenanceList(
@@ -118,15 +132,19 @@ private fun MaintenanceList(
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
-        modifier = modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = modifier.padding(horizontal = 16.dp)
     ) {
         items(
             items = maintenanceList,
             key = { it.id }
         ) { maintenance ->
-            MaintenanceCard(
+            val isFirst = maintenanceList.first() == maintenance
+            val isLast = maintenanceList.last() == maintenance
+
+            TimelineItem(
                 maintenance = maintenance,
+                isFirst = isFirst,
+                isLast = isLast,
                 onClick = { onMaintenanceClick(maintenance.id) }
             )
         }
@@ -134,80 +152,105 @@ private fun MaintenanceList(
 }
 
 /**
- * メンテナンス記録カード
+ * タイムラインアイテム
  */
 @Composable
-private fun MaintenanceCard(
+private fun TimelineItem(
     maintenance: Maintenance,
+    isFirst: Boolean,
+    isLast: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    Row(
+        modifier = modifier.fillMaxWidth()
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        // 左側: アイコンと縦線
+        TimelineIconColumn(
+            icon = maintenance.type.icon,
+            isFirst = isFirst,
+            isLast = isLast
+        )
+
+        Spacer(modifier = Modifier.padding(horizontal = 8.dp))
+
+        // 右側: カードコンテンツ
+        TimelineCard(
+            maintenance = maintenance,
+            onClick = onClick,
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 12.dp)
+        )
+    }
+}
+
+/**
+ * タイムラインアイコン列
+ */
+@Composable
+private fun TimelineIconColumn(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    isFirst: Boolean,
+    isLast: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxHeight(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 上部の線
+        if (!isFirst) {
+            Box(
+                modifier = Modifier
+                    .width(2.dp)
+                    .height(12.dp)
+                    .padding(vertical = 4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .fillMaxHeight()
+                        .background(MaterialTheme.colorScheme.outlineVariant)
+                )
+            }
+        } else {
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        // アイコン
+        Surface(
+            modifier = Modifier.padding(vertical = 4.dp),
+            shape = androidx.compose.foundation.shape.CircleShape,
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
         ) {
-            // ヘッダー: メンテナンス種別と日付
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier.padding(8.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = maintenance.type.displayName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                Text(
-                    text = formatTimestamp(maintenance.date),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(4.dp)
                 )
             }
+        }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 走行距離と費用
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+        // 下部の線
+        if (!isLast) {
+            Box(
+                modifier = Modifier
+                    .width(2.dp)
+                    .weight(1f)
+                    .padding(vertical = 4.dp)
             ) {
-                InfoItem(
-                    label = "走行距離",
-                    value = "${String.format("%,d", maintenance.mileage)} km"
-                )
-
-                if (maintenance.hasCost()) {
-                    InfoItem(
-                        label = "費用",
-                        value = maintenance.getCostDisplay()
-                    )
-                }
-            }
-
-            // 実施店舗
-            if (maintenance.hasShop()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                InfoItem(
-                    label = "実施店舗",
-                    value = maintenance.shop ?: ""
-                )
-            }
-
-            // メモ
-            if (maintenance.hasMemo()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = maintenance.memo ?: "",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .fillMaxHeight()
+                        .background(MaterialTheme.colorScheme.outlineVariant)
                 )
             }
         }
@@ -215,28 +258,51 @@ private fun MaintenanceCard(
 }
 
 /**
- * 情報表示アイテム
+ * タイムラインカード
  */
 @Composable
-private fun InfoItem(
-    label: String,
-    value: String,
+private fun TimelineCard(
+    maintenance: Maintenance,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
+    OutlinedCard(
+        modifier = modifier.clickable(onClick = onClick)
     ) {
-        Text(
-            text = "$label: ",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
-        )
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // メンテナンス種別
+            Text(
+                text = maintenance.type.displayName,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // 日付と走行距離
+            Text(
+                text = "${formatTimestamp(maintenance.date, "yyyy年MM月dd日")} · ${
+                    String.format(
+                        "%,d",
+                        maintenance.mileage
+                    )
+                } km",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            // 費用
+            if (maintenance.hasCost()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = maintenance.getCostDisplay(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
     }
 }
 
@@ -270,21 +336,40 @@ private fun EmptyState(
 
 @Preview(showBackground = true)
 @Composable
-private fun MaintenanceCardPreview() {
+private fun TimelineItemPreview() {
     CarMaintenanceRecordTheme {
-        MaintenanceCard(
-            maintenance = Maintenance(
-                id = 1L,
-                carId = 1L,
-                type = MaintenanceType.OIL_CHANGE,
-                date = System.currentTimeMillis(),
-                mileage = 50000,
-                cost = 5000,
-                shop = "オートバックス",
-                memo = "定期メンテナンス。エンジンオイルとフィルターを交換しました。"
-            ),
-            onClick = {}
-        )
+        Column {
+            TimelineItem(
+                maintenance = Maintenance(
+                    id = 1L,
+                    carId = 1L,
+                    type = MaintenanceType.OIL_CHANGE,
+                    date = System.currentTimeMillis(),
+                    mileage = 55000,
+                    cost = 8500,
+                    shop = null,
+                    memo = null
+                ),
+                isFirst = true,
+                isLast = false,
+                onClick = {}
+            )
+            TimelineItem(
+                maintenance = Maintenance(
+                    id = 2L,
+                    carId = 1L,
+                    type = MaintenanceType.LEGAL_INSPECTION,
+                    date = System.currentTimeMillis() - 15552000000L,
+                    mileage = 48000,
+                    cost = 25000,
+                    shop = null,
+                    memo = null
+                ),
+                isFirst = false,
+                isLast = true,
+                onClick = {}
+            )
+        }
     }
 }
 
