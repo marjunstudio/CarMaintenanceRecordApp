@@ -155,17 +155,32 @@ private fun MaintenanceForm(
         OutlinedTextField(
             value = uiState.mileageText,
             onValueChange = onMileageChange,
-            label = { Text("走行距離 (km) *") },
+            label = { Text("走行距離 *") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+            trailingIcon = {
+                Text(
+                    text = "km",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         )
 
         // 費用
         OutlinedTextField(
             value = uiState.costText,
             onValueChange = onCostChange,
-            label = { Text("費用 (円)") },
+            label = { Text("金額 (任意)") },
+            placeholder = { Text("0") },
+            leadingIcon = {
+                Text(
+                    text = "¥",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
@@ -175,7 +190,7 @@ private fun MaintenanceForm(
         OutlinedTextField(
             value = uiState.shopText,
             onValueChange = onShopChange,
-            label = { Text("実施店舗") },
+            label = { Text("実施店舗 (任意)") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -184,7 +199,8 @@ private fun MaintenanceForm(
         OutlinedTextField(
             value = uiState.memoText,
             onValueChange = onMemoChange,
-            label = { Text("メモ") },
+            label = { Text("メモ (任意)") },
+            placeholder = { Text("交換した部品やお店の名前など") },
             modifier = Modifier.fillMaxWidth(),
             minLines = 3,
             maxLines = 5
@@ -196,15 +212,8 @@ private fun MaintenanceForm(
             modifier = Modifier.fillMaxWidth(),
             enabled = !uiState.isLoading
         ) {
-            Text("保存")
+            Text("登録する")
         }
-
-        // 必須項目の注釈
-        Text(
-            text = "* は必須項目です",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
 

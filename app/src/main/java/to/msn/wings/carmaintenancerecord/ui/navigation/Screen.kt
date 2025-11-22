@@ -5,7 +5,12 @@ package to.msn.wings.carmaintenancerecord.ui.navigation
  */
 sealed class Screen(val route: String) {
     /**
-     * ホーム画面（未実装）
+     * メイン画面（タブナビゲーション）
+     */
+    data object Main : Screen("main")
+
+    /**
+     * ホーム画面
      */
     data object Home : Screen("home")
 
