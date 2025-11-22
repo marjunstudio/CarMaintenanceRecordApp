@@ -86,6 +86,40 @@ ViewModel → UseCase → Repository → Room
 - ViewModelは画面単位のUiStateを管理
 - 将来のKMP移行を見据えたDomain/Dataレイヤの分離
 
+#### コメントの記載方針
+- **コメントは最小限に**：コードから明らかな処理には書かない
+- **WHATではなくWHYを書く**：「何をしているか」ではなく「なぜそうしているか」を説明
+- **コメントが必要な場合**：
+  - 複雑なビジネスロジックや計算式
+  - 非自明な回避策やハック
+  - 外部仕様やAPIの制約による実装
+  - パフォーマンス最適化の理由
+- **コメント不要な場合**：
+  - 変数の代入や単純な処理
+  - 関数名・変数名で意図が明確な処理
+  - 標準的なデザインパターンの実装
+- **例**：
+  ```kotlin
+  // ❌ 悪い例：コードを読めば分かる
+  // carNameを空文字にする
+  val carName = ""
+
+  // ❌ 悪い例：WHATを説明している
+  // データベースから車を取得
+  carRepository.getCar(id)
+
+  // ✅ 良い例：WHYを説明している
+  // 納車時より少ない走行距離は物理的にあり得ないため拒否
+  if (mileage < initialMileage) {
+      return error("Invalid mileage")
+  }
+
+  // ✅ 良い例：外部制約を説明
+  // Room 2.6.1のバグ回避のため、fallbackToDestructiveMigrationを使用
+  // https://issuetracker.google.com/issues/xxxxx
+  .fallbackToDestructiveMigration()
+  ```
+
 #### Domain層のドキュメント
 - Domainモデルクラスには必ずKDocを記載する
 - クラスの説明とすべてのプロパティの説明を`@property`タグで記載する
