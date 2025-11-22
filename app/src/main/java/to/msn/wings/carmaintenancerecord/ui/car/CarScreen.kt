@@ -32,6 +32,7 @@ import to.msn.wings.carmaintenancerecord.util.formatTimestamp
 
 @Composable
 fun CarScreen(
+    onNavigateToMaintenanceList: (Long) -> Unit = {},
     viewModel: CarViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -60,6 +61,11 @@ fun CarScreen(
             } else {
                 viewModel.updateMileage()
             }
+        },
+        onNavigateToMaintenanceList = {
+            uiState.car?.let { car ->
+                onNavigateToMaintenanceList(car.id)
+            }
         }
     )
 }
@@ -75,7 +81,8 @@ private fun CarScreenContent(
     onCarLicensePlateChanged: (String) -> Unit,
     onCarInitialMileageChanged: (String) -> Unit,
     onCarMileageChanged: (String) -> Unit,
-    onSaveOrUpdateClick: () -> Unit
+    onSaveOrUpdateClick: () -> Unit,
+    onNavigateToMaintenanceList: () -> Unit = {}
 ) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -190,6 +197,16 @@ private fun CarScreenContent(
                 }
 
                 if (uiState.car != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = onNavigateToMaintenanceList,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !uiState.isSaving
+                    ) {
+                        Text("メンテナンス履歴を見る")
+                    }
+
                     Spacer(modifier = Modifier.height(24.dp))
                     Text(
                         text = "登録日: ${formatTimestamp(uiState.car!!.createdAt)}",
@@ -231,7 +248,8 @@ private fun CarScreenPreview_Empty() {
             onCarLicensePlateChanged = {},
             onCarInitialMileageChanged = {},
             onCarMileageChanged = {},
-            onSaveOrUpdateClick = {}
+            onSaveOrUpdateClick = {},
+            onNavigateToMaintenanceList = {}
         )
     }
 }
