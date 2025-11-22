@@ -86,6 +86,39 @@ ViewModel → UseCase → Repository → Room
 - ViewModelは画面単位のUiStateを管理
 - 将来のKMP移行を見据えたDomain/Dataレイヤの分離
 
+#### Domain層のドキュメント
+- Domainモデルクラスには必ずKDocを記載する
+- クラスの説明とすべてのプロパティの説明を`@property`タグで記載する
+- 例:
+  ```kotlin
+  /**
+   * 車両情報を表すドメインモデル
+   * @property id 車両ID
+   * @property name 車両名
+   * @property mileage 現在の走行距離（km）
+   */
+  data class Car(
+      val id: Long,
+      val name: String,
+      val mileage: Int
+  )
+  ```
+
+#### Composable関数のプレビュー
+- すべてのComposable関数には対応する`@Preview`関数を記載する
+- プレビュー関数名は`{関数名}Preview`とする
+- 例:
+  ```kotlin
+  @Composable
+  fun CarCard(car: Car) { ... }
+
+  @Preview(showBackground = true)
+  @Composable
+  private fun CarCardPreview() {
+      CarCard(car = Car(id = 1, name = "Sample Car", mileage = 10000))
+  }
+  ```
+
 ### テスト方針（MVP段階）
 - UI: 手動確認
 - Domain: UseCase単体テスト（任意）
