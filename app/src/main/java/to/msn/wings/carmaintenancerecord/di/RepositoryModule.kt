@@ -6,6 +6,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import to.msn.wings.carmaintenancerecord.data.repository.CarRepository
 import to.msn.wings.carmaintenancerecord.data.repository.CarRepositoryImpl
+import to.msn.wings.carmaintenancerecord.data.repository.MaintenanceRepository
+import to.msn.wings.carmaintenancerecord.data.repository.MaintenanceRepositoryImpl
 import javax.inject.Singleton
 
 @Module
@@ -17,4 +19,10 @@ abstract class RepositoryModule {
     abstract fun bindCarRepository(
         carRepositoryImpl: CarRepositoryImpl
     ): CarRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMaintenanceRepository(
+        maintenanceRepositoryImpl: MaintenanceRepositoryImpl
+    ): MaintenanceRepository
 }

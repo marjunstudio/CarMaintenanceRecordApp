@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import to.msn.wings.carmaintenancerecord.data.local.AppDatabase
 import to.msn.wings.carmaintenancerecord.data.local.dao.CarDao
+import to.msn.wings.carmaintenancerecord.data.local.dao.MaintenanceDao
 import javax.inject.Singleton
 
 @Module
@@ -33,5 +34,11 @@ object DatabaseModule {
     @Singleton
     fun provideCarDao(database: AppDatabase): CarDao {
         return database.carDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMaintenanceDao(database: AppDatabase): MaintenanceDao {
+        return database.maintenanceDao()
     }
 }
