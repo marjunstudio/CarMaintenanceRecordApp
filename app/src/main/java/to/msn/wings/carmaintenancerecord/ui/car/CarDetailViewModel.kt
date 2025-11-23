@@ -26,7 +26,8 @@ class CarDetailViewModel @Inject constructor(
     val uiState: StateFlow<CarDetailUiState> = _uiState.asStateFlow()
 
     companion object {
-        private const val OIL_CHANGE_INTERVAL = 5000
+        private const val MAX_NEXT_MAINTENANCE_DISPLAY = 3
+        private const val MILLIS_PER_DAY = 86400000L
     }
 
     init {
@@ -42,13 +43,13 @@ class CarDetailViewModel @Inject constructor(
                     if (car != null) {
                         getMaintenanceListUseCase(car.id).collect { maintenanceList ->
                             val recentList = maintenanceList.take(3)
-                            val nextMaintenance = calculateNextMaintenance(car, maintenanceList)
+                            val nextMaintenanceList = calculateNextMaintenances(car, maintenanceList)
 
                             _uiState.update {
                                 it.copy(
                                     car = car,
                                     recentMaintenanceList = recentList,
-                                    nextMaintenance = nextMaintenance,
+                                    nextMaintenanceList = nextMaintenanceList,
                                     isLoading = false,
                                     errorMessage = null
                                 )
@@ -59,7 +60,7 @@ class CarDetailViewModel @Inject constructor(
                             it.copy(
                                 car = null,
                                 recentMaintenanceList = emptyList(),
-                                nextMaintenance = null,
+                                nextMaintenanceList = emptyList(),
                                 isLoading = false,
                                 errorMessage = null
                             )
@@ -77,31 +78,82 @@ class CarDetailViewModel @Inject constructor(
         }
     }
 
-    private fun calculateNextMaintenance(
+    /**
+     * すべてのメンテナンス種類の次回予定を計算
+     * 進捗率の高い順（=実施時期が近い順）にソートして、上位を返す
+     */
+    private fun calculateNextMaintenances(
         car: Car,
         maintenanceList: List<Maintenance>
-    ): NextMaintenance? {
-        val lastOilChange = maintenanceList
-            .filter { it.type == MaintenanceType.OIL_CHANGE }
-            .maxByOrNull { it.date }
+    ): List<NextMaintenance> {
+        val currentTime = System.currentTimeMillis()
+        val nextMaintenances = mutableListOf<NextMaintenance>()
 
-        return if (lastOilChange != null) {
-            val distanceSinceLastOilChange = car.mileage - lastOilChange.mileage
-            val remainingDistance = OIL_CHANGE_INTERVAL - distanceSinceLastOilChange
-            val progress = distanceSinceLastOilChange.toFloat() / OIL_CHANGE_INTERVAL
+        MaintenanceType.values().forEach { type ->
+            val lastMaintenance = maintenanceList
+                .filter { it.type == type }
+                .maxByOrNull { it.date }
 
-            NextMaintenance(
-                type = MaintenanceType.OIL_CHANGE,
-                remainingDistance = remainingDistance.coerceAtLeast(0),
-                progressPercentage = progress.coerceIn(0f, 1f)
-            )
-        } else {
-            NextMaintenance(
-                type = MaintenanceType.OIL_CHANGE,
-                remainingDistance = OIL_CHANGE_INTERVAL,
-                progressPercentage = 0f
-            )
+            when {
+                // 距離ベースのメンテナンス
+                type.defaultIntervalKm != null -> {
+                    val interval = type.defaultIntervalKm
+                    val nextMaintenance = if (lastMaintenance != null) {
+                        val distanceSinceLast = car.mileage - lastMaintenance.mileage
+                        val remainingDistance = interval - distanceSinceLast
+                        val progress = distanceSinceLast.toFloat() / interval
+
+                        NextMaintenance(
+                            type = type,
+                            remainingDistance = remainingDistance.coerceAtLeast(0),
+                            progressPercentage = progress.coerceIn(0f, 1f)
+                        )
+                    } else {
+                        val distanceSinceDelivery = car.mileage - car.initialMileage
+                        val remainingDistance = interval - distanceSinceDelivery
+                        val progress = distanceSinceDelivery.toFloat() / interval
+
+                        NextMaintenance(
+                            type = type,
+                            remainingDistance = remainingDistance.coerceAtLeast(0),
+                            progressPercentage = progress.coerceIn(0f, 1f)
+                        )
+                    }
+                    nextMaintenances.add(nextMaintenance)
+                }
+
+                // 日数ベースのメンテナンス
+                type.defaultIntervalDays != null -> {
+                    val interval = type.defaultIntervalDays
+                    val nextMaintenance = if (lastMaintenance != null) {
+                        val daysSinceLast = ((currentTime - lastMaintenance.date) / MILLIS_PER_DAY).toInt()
+                        val remainingDays = interval - daysSinceLast
+                        val progress = daysSinceLast.toFloat() / interval
+
+                        NextMaintenance(
+                            type = type,
+                            remainingDays = remainingDays.coerceAtLeast(0),
+                            progressPercentage = progress.coerceIn(0f, 1f)
+                        )
+                    } else {
+                        val daysSinceCreation = ((currentTime - car.createdAt) / MILLIS_PER_DAY).toInt()
+                        val remainingDays = interval - daysSinceCreation
+                        val progress = daysSinceCreation.toFloat() / interval
+
+                        NextMaintenance(
+                            type = type,
+                            remainingDays = remainingDays.coerceAtLeast(0),
+                            progressPercentage = progress.coerceIn(0f, 1f)
+                        )
+                    }
+                    nextMaintenances.add(nextMaintenance)
+                }
+            }
         }
+
+        return nextMaintenances
+            .sortedByDescending { it.progressPercentage }
+            .take(MAX_NEXT_MAINTENANCE_DISPLAY)
     }
 
     fun clearError() {

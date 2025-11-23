@@ -177,6 +177,7 @@ class CarEditViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isSaving = false,
+                        isSaveSuccessful = true,
                         errorMessage = null
                     )
                 }
@@ -229,5 +230,9 @@ class CarEditViewModel @Inject constructor(
 
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    fun clearSaveSuccess() {
+        _uiState.update { it.copy(isSaveSuccessful = false) }
     }
 }

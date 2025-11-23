@@ -62,6 +62,13 @@ fun CarEditScreen(
         }
     }
 
+    LaunchedEffect(uiState.isSaveSuccessful) {
+        if (uiState.isSaveSuccessful) {
+            viewModel.clearSaveSuccess()
+            onNavigateBack()
+        }
+    }
+
     CarEditScreenContent(
         uiState = uiState,
         snackbarHostState = snackbarHostState,
@@ -128,36 +135,7 @@ private fun CarEditScreenContent(
                 )
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
-                    .padding(16.dp)
-            ) {
-                androidx.compose.material3.Button(
-                    onClick = onSaveClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !uiState.isSaving,
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    if (uiState.isSaving) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        Text(
-                            text = "車両を保存",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        )
-                    }
-                }
-            }
-        }
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         if (uiState.isLoading) {
             Box(

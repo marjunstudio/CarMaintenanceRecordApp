@@ -21,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Button
@@ -59,6 +58,7 @@ import to.msn.wings.carmaintenancerecord.domain.model.Car
 import to.msn.wings.carmaintenancerecord.domain.model.Maintenance
 import to.msn.wings.carmaintenancerecord.domain.model.MaintenanceType
 import to.msn.wings.carmaintenancerecord.ui.theme.CarMaintenanceRecordTheme
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -151,7 +151,6 @@ private fun CarDetailScreenContent(
             ) {
                 VehicleOverviewCard(
                     car = uiState.car,
-                    nextMaintenance = uiState.nextMaintenance,
                     modifier = Modifier.padding(16.dp)
                 )
 
@@ -162,6 +161,22 @@ private fun CarDetailScreenContent(
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
+
+                if (uiState.nextMaintenanceList.isNotEmpty()) {
+                    Text(
+                        text = "次回メンテナンス予定",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+
+                    NextMaintenanceList(
+                        nextMaintenanceList = uiState.nextMaintenanceList,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
 
                 if (uiState.recentMaintenanceList.isNotEmpty()) {
                     Text(
@@ -268,7 +283,6 @@ private fun EmptyCarView(
 @Composable
 private fun VehicleOverviewCard(
     car: Car,
-    nextMaintenance: NextMaintenance?,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -322,45 +336,10 @@ private fun VehicleOverviewCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "${String.format("%,d", car.mileage)} km",
+                        text = "${String.format(Locale.getDefault(), "%,d", car.mileage)} km",
                         style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.Bold
                     )
-                }
-
-                nextMaintenance?.let { maintenance ->
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Column {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "次回${maintenance.type.displayName}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                text = maintenance.getDisplayText(),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        LinearProgressIndicator(
-                            progress = { maintenance.progressPercentage },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(4.dp)),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    }
                 }
             }
         }
@@ -412,6 +391,102 @@ private fun ButtonGroup(
             Text(
                 text = "記録を追加",
                 fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+private fun NextMaintenanceList(
+    nextMaintenanceList: List<NextMaintenance>,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        nextMaintenanceList.forEach { nextMaintenance ->
+            NextMaintenanceCard(nextMaintenance = nextMaintenance)
+        }
+    }
+}
+
+@Composable
+private fun NextMaintenanceCard(
+    nextMaintenance: NextMaintenance,
+    modifier: Modifier = Modifier
+) {
+    val urgency = nextMaintenance.getUrgency()
+    val progressColor = when (urgency) {
+        Urgency.HIGH -> MaterialTheme.colorScheme.error
+        Urgency.MEDIUM -> MaterialTheme.colorScheme.tertiary
+        Urgency.LOW -> MaterialTheme.colorScheme.primary
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                color = progressColor.copy(alpha = 0.2f),
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = nextMaintenance.type.icon,
+                            contentDescription = null,
+                            tint = progressColor,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    Text(
+                        text = nextMaintenance.type.displayName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Text(
+                    text = nextMaintenance.getDisplayText(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = progressColor
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            LinearProgressIndicator(
+                progress = { nextMaintenance.progressPercentage },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp)),
+                color = progressColor,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
         }
     }
@@ -487,7 +562,7 @@ private fun MaintenanceRecordItem(
             }
 
             Text(
-                text = "${String.format("%,d", maintenance.mileage)} km",
+                text = "${String.format(Locale.getDefault(), "%,d", maintenance.mileage)} km",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium
             )
@@ -548,10 +623,22 @@ private fun CarDetailScreenPreview() {
                         shop = null
                     )
                 ),
-                nextMaintenance = NextMaintenance(
-                    type = MaintenanceType.OIL_CHANGE,
-                    remainingDistance = 1500,
-                    progressPercentage = 0.85f
+                nextMaintenanceList = listOf(
+                    NextMaintenance(
+                        type = MaintenanceType.OIL_CHANGE,
+                        remainingDistance = 1500,
+                        progressPercentage = 0.85f
+                    ),
+                    NextMaintenance(
+                        type = MaintenanceType.TIRE_ROTATION,
+                        remainingDistance = 2800,
+                        progressPercentage = 0.72f
+                    ),
+                    NextMaintenance(
+                        type = MaintenanceType.VEHICLE_INSPECTION,
+                        remainingDays = 120,
+                        progressPercentage = 0.67f
+                    )
                 ),
                 isLoading = false,
                 errorMessage = null
@@ -573,7 +660,7 @@ private fun CarDetailScreenPreview_Empty() {
             uiState = CarDetailUiState(
                 car = null,
                 recentMaintenanceList = emptyList(),
-                nextMaintenance = null,
+                nextMaintenanceList = emptyList(),
                 isLoading = false,
                 errorMessage = null
             ),

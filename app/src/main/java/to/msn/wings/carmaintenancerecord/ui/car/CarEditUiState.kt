@@ -6,6 +6,7 @@ data class CarEditUiState(
     val car: Car? = null,
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
+    val isSaveSuccessful: Boolean = false,
     val errorMessage: String? = null,
     val carName: String = "",
     val carManufacturer: String = "",
