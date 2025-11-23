@@ -169,7 +169,8 @@ private fun TimelineItem(
         TimelineIconColumn(
             icon = maintenance.type.icon,
             isFirst = isFirst,
-            isLast = isLast
+            isLast = isLast,
+            modifier = Modifier.padding(vertical = 12.dp)
         )
 
         Spacer(modifier = Modifier.padding(horizontal = 8.dp))
@@ -204,9 +205,7 @@ private fun TimelineIconColumn(
             Box(
                 modifier = Modifier
                     .width(2.dp)
-                    .height(12.dp)
-                    .padding(vertical = 4.dp),
-                contentAlignment = Alignment.Center
+                    .weight(1f)
             ) {
                 Box(
                     modifier = Modifier
@@ -215,13 +214,10 @@ private fun TimelineIconColumn(
                         .background(MaterialTheme.colorScheme.outlineVariant)
                 )
             }
-        } else {
-            Spacer(modifier = Modifier.height(12.dp))
         }
 
         // アイコン
         Surface(
-            modifier = Modifier.padding(vertical = 4.dp),
             shape = androidx.compose.foundation.shape.CircleShape,
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
         ) {
@@ -244,7 +240,6 @@ private fun TimelineIconColumn(
                 modifier = Modifier
                     .width(2.dp)
                     .weight(1f)
-                    .padding(vertical = 4.dp)
             ) {
                 Box(
                     modifier = Modifier

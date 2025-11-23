@@ -10,11 +10,6 @@ sealed class Screen(val route: String) {
     data object Main : Screen("main")
 
     /**
-     * ホーム画面
-     */
-    data object Home : Screen("home")
-
-    /**
      * 車両詳細・確認画面
      */
     data object CarDetail : Screen("car_detail")
