@@ -125,16 +125,20 @@ private fun SettingsScreenContent(
                     icon = Icons.Outlined.PrivacyTip,
                     title = "プライバシーポリシー"
                 )
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 66.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                )
-                SettingItemWithValue(
-                    icon = Icons.Default.Info,
-                    title = "アプリのバージョン",
-                    value = uiState.appVersion
-                )
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // アプリバージョン
+            Text(
+                text = "バージョン ${uiState.appVersion}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
         }
     }
 }
