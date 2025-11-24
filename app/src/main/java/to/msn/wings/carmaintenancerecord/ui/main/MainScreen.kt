@@ -2,7 +2,6 @@ package to.msn.wings.carmaintenancerecord.ui.main
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -41,11 +40,6 @@ fun MainScreen() {
             icon = Icons.Default.DirectionsCar
         ),
         BottomNavItem(
-            route = "maintenance_list",
-            label = "メンテナンス",
-            icon = Icons.AutoMirrored.Filled.List
-        ),
-        BottomNavItem(
             route = Screen.Settings.route,
             label = "設定",
             icon = Icons.Default.Settings
@@ -63,22 +57,12 @@ fun MainScreen() {
                     NavigationBarItem(
                         selected = selected,
                         onClick = {
-                            if (item.route == "maintenance_list") {
-                                navController.navigate(Screen.MaintenanceList.createRoute(1L)) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
                                 }
-                            } else {
-                                navController.navigate(item.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
+                                launchSingleTop = true
+                                restoreState = true
                             }
                         },
                         icon = {
@@ -102,6 +86,9 @@ fun MainScreen() {
                 CarDetailScreen(
                     onNavigateToCarEdit = {
                         navController.navigate(Screen.CarEdit.route)
+                    },
+                    onNavigateToMaintenanceIntervalSetting = {
+                        navController.navigate(Screen.MaintenanceIntervalSetting.route)
                     },
                     onNavigateToMaintenanceAdd = {
                         navController.navigate(Screen.MaintenanceDetail.createRoute(1L))

@@ -21,6 +21,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Button
@@ -28,6 +30,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -41,7 +45,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,9 +65,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+
+// TODO: 一ファイルでの管理が大変なのでコンポーネントに切り出す
 @Composable
 fun CarDetailScreen(
     onNavigateToCarEdit: () -> Unit = {},
+    onNavigateToMaintenanceIntervalSetting: () -> Unit = {},
     onNavigateToMaintenanceAdd: () -> Unit = {},
     onNavigateToMaintenanceList: () -> Unit = {},
     onNavigateToMileageUpdate: () -> Unit = {},
@@ -81,6 +90,7 @@ fun CarDetailScreen(
         uiState = uiState,
         snackbarHostState = snackbarHostState,
         onNavigateToCarEdit = onNavigateToCarEdit,
+        onNavigateToMaintenanceIntervalSetting = onNavigateToMaintenanceIntervalSetting,
         onNavigateToMaintenanceAdd = onNavigateToMaintenanceAdd,
         onNavigateToMaintenanceList = onNavigateToMaintenanceList,
         onNavigateToMileageUpdate = onNavigateToMileageUpdate
@@ -92,6 +102,7 @@ private fun CarDetailScreenContent(
     uiState: CarDetailUiState,
     snackbarHostState: SnackbarHostState,
     onNavigateToCarEdit: () -> Unit,
+    onNavigateToMaintenanceIntervalSetting: () -> Unit,
     onNavigateToMaintenanceAdd: () -> Unit,
     onNavigateToMaintenanceList: () -> Unit,
     onNavigateToMileageUpdate: () -> Unit
@@ -101,11 +112,47 @@ private fun CarDetailScreenContent(
             AppTopBar(
                 title = "マイガレージ",
                 actions = {
-                    IconButton(onClick = onNavigateToCarEdit) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "設定"
-                        )
+                    Box {
+                        var showSettingsMenu by remember { mutableStateOf(false) }
+
+                        IconButton(onClick = { showSettingsMenu = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "設定"
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showSettingsMenu,
+                            onDismissRequest = { showSettingsMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("車両を編集") },
+                                onClick = {
+                                    showSettingsMenu = false
+                                    onNavigateToCarEdit()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("メンテナンス周期設定") },
+                                onClick = {
+                                    showSettingsMenu = false
+                                    onNavigateToMaintenanceIntervalSetting()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Schedule,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             )
@@ -137,8 +184,11 @@ private fun CarDetailScreenContent(
             ) {
                 VehicleOverviewCard(
                     car = uiState.car,
+                    nextMaintenance = uiState.nextMaintenanceList.firstOrNull(),
                     modifier = Modifier.padding(16.dp)
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 ButtonGroup(
                     onMileageUpdateClick = onNavigateToMileageUpdate,
@@ -146,23 +196,7 @@ private fun CarDetailScreenContent(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                if (uiState.nextMaintenanceList.isNotEmpty()) {
-                    Text(
-                        text = "次回メンテナンス予定",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-
-                    NextMaintenanceList(
-                        nextMaintenanceList = uiState.nextMaintenanceList,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
+                Spacer(modifier = Modifier.height(16.dp))
 
                 if (uiState.recentMaintenanceList.isNotEmpty()) {
                     Text(
@@ -179,19 +213,24 @@ private fun CarDetailScreenContent(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    OutlinedButton(
-                        onClick = onNavigateToMaintenanceList,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(
-                            text = "すべての整備記録を見る",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        )
+                    if (uiState.recentMaintenanceList.size >= 3) {
+                        OutlinedButton(
+                            onClick = onNavigateToMaintenanceList,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .height(44.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text(
+                                text = "すべての整備記録を見る",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
 
@@ -269,11 +308,12 @@ private fun EmptyCarView(
 @Composable
 private fun VehicleOverviewCard(
     car: Car,
+    nextMaintenance: NextMaintenance?,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -284,7 +324,7 @@ private fun VehicleOverviewCard(
                     .fillMaxWidth()
                     .aspectRatio(16f / 9f)
                     .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -327,6 +367,41 @@ private fun VehicleOverviewCard(
                         fontWeight = FontWeight.Bold
                     )
                 }
+
+                if (nextMaintenance != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = nextMaintenance.type.displayName,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = nextMaintenance.getDisplayText(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        LinearProgressIndicator(
+                            progress = { nextMaintenance.progressPercentage.coerceIn(0f, 1f) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp)),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
         }
     }
@@ -342,12 +417,16 @@ private fun ButtonGroup(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        FilledTonalButton(
+        Button(
             onClick = onMileageUpdateClick,
             modifier = Modifier
                 .weight(1f)
                 .height(48.dp),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            )
         ) {
             Icon(
                 imageVector = Icons.Default.Speed,
@@ -366,7 +445,7 @@ private fun ButtonGroup(
             modifier = Modifier
                 .weight(1f)
                 .height(48.dp),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(8.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
@@ -377,102 +456,6 @@ private fun ButtonGroup(
             Text(
                 text = "記録を追加",
                 fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-@Composable
-private fun NextMaintenanceList(
-    nextMaintenanceList: List<NextMaintenance>,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        nextMaintenanceList.forEach { nextMaintenance ->
-            NextMaintenanceCard(nextMaintenance = nextMaintenance)
-        }
-    }
-}
-
-@Composable
-private fun NextMaintenanceCard(
-    nextMaintenance: NextMaintenance,
-    modifier: Modifier = Modifier
-) {
-    val urgency = nextMaintenance.getUrgency()
-    val progressColor = when (urgency) {
-        Urgency.HIGH -> MaterialTheme.colorScheme.error
-        Urgency.MEDIUM -> MaterialTheme.colorScheme.tertiary
-        Urgency.LOW -> MaterialTheme.colorScheme.primary
-    }
-
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(
-                                color = progressColor.copy(alpha = 0.2f),
-                                shape = CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = nextMaintenance.type.icon,
-                            contentDescription = null,
-                            tint = progressColor,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-
-                    Text(
-                        text = nextMaintenance.type.displayName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Text(
-                    text = nextMaintenance.getDisplayText(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = progressColor
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            LinearProgressIndicator(
-                progress = { nextMaintenance.progressPercentage },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                color = progressColor,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
         }
     }
@@ -500,7 +483,7 @@ private fun MaintenanceRecordItem(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -514,14 +497,14 @@ private fun MaintenanceRecordItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
                         .size(40.dp)
                         .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                             shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
@@ -529,7 +512,7 @@ private fun MaintenanceRecordItem(
                     Icon(
                         imageVector = maintenance.type.icon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
 
@@ -586,27 +569,21 @@ private fun CarDetailScreenPreview() {
                         carId = 1L,
                         type = MaintenanceType.OIL_CHANGE,
                         date = System.currentTimeMillis() - 86400000L * 30,
-                        mileage = 124300,
-                        cost = 5000,
-                        shop = "オートバックス"
+                        mileage = 124300
                     ),
                     Maintenance(
                         id = 2L,
                         carId = 1L,
                         type = MaintenanceType.TIRE_ROTATION,
                         date = System.currentTimeMillis() - 86400000L * 60,
-                        mileage = 122500,
-                        cost = 3000,
-                        shop = null
+                        mileage = 122500
                     ),
                     Maintenance(
                         id = 3L,
                         carId = 1L,
                         type = MaintenanceType.AIR_FILTER_CHANGE,
                         date = System.currentTimeMillis() - 86400000L * 90,
-                        mileage = 120150,
-                        cost = 2500,
-                        shop = null
+                        mileage = 120150
                     )
                 ),
                 nextMaintenanceList = listOf(
@@ -631,6 +608,7 @@ private fun CarDetailScreenPreview() {
             ),
             snackbarHostState = remember { SnackbarHostState() },
             onNavigateToCarEdit = {},
+            onNavigateToMaintenanceIntervalSetting = {},
             onNavigateToMaintenanceAdd = {},
             onNavigateToMaintenanceList = {},
             onNavigateToMileageUpdate = {}
@@ -652,6 +630,7 @@ private fun CarDetailScreenPreview_Empty() {
             ),
             snackbarHostState = remember { SnackbarHostState() },
             onNavigateToCarEdit = {},
+            onNavigateToMaintenanceIntervalSetting = {},
             onNavigateToMaintenanceAdd = {},
             onNavigateToMaintenanceList = {},
             onNavigateToMileageUpdate = {}

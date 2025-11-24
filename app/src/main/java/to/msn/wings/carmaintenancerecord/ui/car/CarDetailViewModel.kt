@@ -11,15 +11,18 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import to.msn.wings.carmaintenancerecord.domain.model.Car
 import to.msn.wings.carmaintenancerecord.domain.model.Maintenance
+import to.msn.wings.carmaintenancerecord.domain.model.MaintenanceIntervalSetting
 import to.msn.wings.carmaintenancerecord.domain.model.MaintenanceType
 import to.msn.wings.carmaintenancerecord.domain.usecase.GetCarUseCase
+import to.msn.wings.carmaintenancerecord.domain.usecase.GetMaintenanceIntervalSettingsUseCase
 import to.msn.wings.carmaintenancerecord.domain.usecase.GetMaintenanceListUseCase
 import javax.inject.Inject
 
 @HiltViewModel
 class CarDetailViewModel @Inject constructor(
     private val getCarUseCase: GetCarUseCase,
-    private val getMaintenanceListUseCase: GetMaintenanceListUseCase
+    private val getMaintenanceListUseCase: GetMaintenanceListUseCase,
+    private val getIntervalSettingsUseCase: GetMaintenanceIntervalSettingsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CarDetailUiState())
@@ -41,19 +44,26 @@ class CarDetailViewModel @Inject constructor(
             try {
                 getCarUseCase().collect { car ->
                     if (car != null) {
-                        getMaintenanceListUseCase(car.id).collect { maintenanceList ->
+                        combine(
+                            getMaintenanceListUseCase(car.id),
+                            getIntervalSettingsUseCase(car.id)
+                        ) { maintenanceList, intervalSettings ->
                             val recentList = maintenanceList.take(3)
-                            val nextMaintenanceList = calculateNextMaintenances(car, maintenanceList)
+                            val nextMaintenanceList = calculateNextMaintenances(
+                                car = car,
+                                maintenanceList = maintenanceList,
+                                intervalSettings = intervalSettings
+                            )
 
-                            _uiState.update {
-                                it.copy(
-                                    car = car,
-                                    recentMaintenanceList = recentList,
-                                    nextMaintenanceList = nextMaintenanceList,
-                                    isLoading = false,
-                                    errorMessage = null
-                                )
-                            }
+                            CarDetailUiState(
+                                car = car,
+                                recentMaintenanceList = recentList,
+                                nextMaintenanceList = nextMaintenanceList,
+                                isLoading = false,
+                                errorMessage = null
+                            )
+                        }.collect { newState ->
+                            _uiState.value = newState
                         }
                     } else {
                         _uiState.update {
@@ -80,73 +90,86 @@ class CarDetailViewModel @Inject constructor(
 
     /**
      * すべてのメンテナンス種類の次回予定を計算
+     * ユーザー設定の周期を優先し、なければデフォルト値を使用
      * 進捗率の高い順（=実施時期が近い順）にソートして、上位を返す
      */
     private fun calculateNextMaintenances(
         car: Car,
-        maintenanceList: List<Maintenance>
+        maintenanceList: List<Maintenance>,
+        intervalSettings: List<MaintenanceIntervalSetting>
     ): List<NextMaintenance> {
         val currentTime = System.currentTimeMillis()
         val nextMaintenances = mutableListOf<NextMaintenance>()
+        val settingsMap = intervalSettings.associateBy { it.type }
 
         MaintenanceType.values().forEach { type ->
+            val customSetting = settingsMap[type]
+            val intervalKm = customSetting?.intervalKm ?: type.defaultIntervalKm
+            val intervalDays = customSetting?.intervalDays ?: type.defaultIntervalDays
+
             val lastMaintenance = maintenanceList
                 .filter { it.type == type }
                 .maxByOrNull { it.date }
 
-            when {
-                // 距離ベースのメンテナンス
-                type.defaultIntervalKm != null -> {
-                    val interval = type.defaultIntervalKm
-                    val nextMaintenance = if (lastMaintenance != null) {
-                        val distanceSinceLast = car.mileage - lastMaintenance.mileage
-                        val remainingDistance = interval - distanceSinceLast
-                        val progress = distanceSinceLast.toFloat() / interval
+            val candidates = mutableListOf<NextMaintenance>()
 
-                        NextMaintenance(
-                            type = type,
-                            remainingDistance = remainingDistance.coerceAtLeast(0),
-                            progressPercentage = progress.coerceIn(0f, 1f)
-                        )
-                    } else {
-                        val distanceSinceDelivery = car.mileage - car.initialMileage
-                        val remainingDistance = interval - distanceSinceDelivery
-                        val progress = distanceSinceDelivery.toFloat() / interval
+            // 距離ベースの計算
+            if (intervalKm != null && intervalKm > 0) {
+                val nextMaintenance = if (lastMaintenance != null) {
+                    val distanceSinceLast = car.mileage - lastMaintenance.mileage
+                    val remainingDistance = intervalKm - distanceSinceLast
+                    val progress = distanceSinceLast.toFloat() / intervalKm
 
-                        NextMaintenance(
-                            type = type,
-                            remainingDistance = remainingDistance.coerceAtLeast(0),
-                            progressPercentage = progress.coerceIn(0f, 1f)
-                        )
-                    }
-                    nextMaintenances.add(nextMaintenance)
+                    NextMaintenance(
+                        type = type,
+                        remainingDistance = remainingDistance.coerceAtLeast(0),
+                        progressPercentage = progress.coerceIn(0f, 1f)
+                    )
+                } else {
+                    val distanceSinceDelivery = car.mileage - car.initialMileage
+                    val remainingDistance = intervalKm - distanceSinceDelivery
+                    val progress = distanceSinceDelivery.toFloat() / intervalKm
+
+                    NextMaintenance(
+                        type = type,
+                        remainingDistance = remainingDistance.coerceAtLeast(0),
+                        progressPercentage = progress.coerceIn(0f, 1f)
+                    )
                 }
+                candidates.add(nextMaintenance)
+            }
 
-                // 日数ベースのメンテナンス
-                type.defaultIntervalDays != null -> {
-                    val interval = type.defaultIntervalDays
-                    val nextMaintenance = if (lastMaintenance != null) {
-                        val daysSinceLast = ((currentTime - lastMaintenance.date) / MILLIS_PER_DAY).toInt()
-                        val remainingDays = interval - daysSinceLast
-                        val progress = daysSinceLast.toFloat() / interval
+            // 日数ベースの計算
+            if (intervalDays != null && intervalDays > 0) {
+                val nextMaintenance = if (lastMaintenance != null) {
+                    val daysSinceLast = ((currentTime - lastMaintenance.date) / MILLIS_PER_DAY).toInt()
+                    val remainingDays = intervalDays - daysSinceLast
+                    val progress = daysSinceLast.toFloat() / intervalDays
 
-                        NextMaintenance(
-                            type = type,
-                            remainingDays = remainingDays.coerceAtLeast(0),
-                            progressPercentage = progress.coerceIn(0f, 1f)
-                        )
-                    } else {
-                        val daysSinceCreation = ((currentTime - car.createdAt) / MILLIS_PER_DAY).toInt()
-                        val remainingDays = interval - daysSinceCreation
-                        val progress = daysSinceCreation.toFloat() / interval
+                    NextMaintenance(
+                        type = type,
+                        remainingDays = remainingDays.coerceAtLeast(0),
+                        progressPercentage = progress.coerceIn(0f, 1f)
+                    )
+                } else {
+                    val daysSinceCreation = ((currentTime - car.createdAt) / MILLIS_PER_DAY).toInt()
+                    val remainingDays = intervalDays - daysSinceCreation
+                    val progress = daysSinceCreation.toFloat() / intervalDays
 
-                        NextMaintenance(
-                            type = type,
-                            remainingDays = remainingDays.coerceAtLeast(0),
-                            progressPercentage = progress.coerceIn(0f, 1f)
-                        )
-                    }
-                    nextMaintenances.add(nextMaintenance)
+                    NextMaintenance(
+                        type = type,
+                        remainingDays = remainingDays.coerceAtLeast(0),
+                        progressPercentage = progress.coerceIn(0f, 1f)
+                    )
+                }
+                candidates.add(nextMaintenance)
+            }
+
+            // 両方設定されている場合は、より緊急な方（進捗率が高い方）を採用
+            if (candidates.isNotEmpty()) {
+                val mostUrgent = candidates.maxByOrNull { it.progressPercentage }
+                if (mostUrgent != null) {
+                    nextMaintenances.add(mostUrgent)
                 }
             }
         }
