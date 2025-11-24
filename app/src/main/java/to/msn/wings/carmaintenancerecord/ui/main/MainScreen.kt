@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -25,6 +26,7 @@ import to.msn.wings.carmaintenancerecord.ui.car.CarEditScreen
 import to.msn.wings.carmaintenancerecord.ui.maintenance.MaintenanceDetailScreen
 import to.msn.wings.carmaintenancerecord.ui.maintenance.MaintenanceListScreen
 import to.msn.wings.carmaintenancerecord.ui.navigation.Screen
+import to.msn.wings.carmaintenancerecord.ui.settings.SettingsScreen
 
 @Composable
 fun MainScreen() {
@@ -42,6 +44,11 @@ fun MainScreen() {
             route = "maintenance_list",
             label = "メンテナンス",
             icon = Icons.AutoMirrored.Filled.List
+        ),
+        BottomNavItem(
+            route = Screen.Settings.route,
+            label = "設定",
+            icon = Icons.Default.Settings
         )
     )
 
@@ -162,6 +169,10 @@ fun MainScreen() {
                         navController.popBackStack()
                     }
                 )
+            }
+
+            composable(route = Screen.Settings.route) {
+                SettingsScreen()
             }
         }
     }

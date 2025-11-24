@@ -41,4 +41,9 @@ sealed class Screen(val route: String) {
             }
         }
     }
+
+    /**
+     * 設定画面
+     */
+    data object Settings : Screen("settings")
 }

@@ -8,6 +8,8 @@ import to.msn.wings.carmaintenancerecord.data.repository.CarRepository
 import to.msn.wings.carmaintenancerecord.data.repository.CarRepositoryImpl
 import to.msn.wings.carmaintenancerecord.data.repository.MaintenanceRepository
 import to.msn.wings.carmaintenancerecord.data.repository.MaintenanceRepositoryImpl
+import to.msn.wings.carmaintenancerecord.data.repository.UserPreferencesRepository
+import to.msn.wings.carmaintenancerecord.data.repository.UserPreferencesRepositoryImpl
 import javax.inject.Singleton
 
 @Module
@@ -25,4 +27,10 @@ abstract class RepositoryModule {
     abstract fun bindMaintenanceRepository(
         maintenanceRepositoryImpl: MaintenanceRepositoryImpl
     ): MaintenanceRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindUserPreferencesRepository(
+        userPreferencesRepositoryImpl: UserPreferencesRepositoryImpl
+    ): UserPreferencesRepository
 }
