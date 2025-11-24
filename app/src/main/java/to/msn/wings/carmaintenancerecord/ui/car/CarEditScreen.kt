@@ -98,7 +98,7 @@ private fun CarEditScreenContent(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "車両の追加・編集",
+                title = if (uiState.car == null) "愛車の登録" else "愛車の編集",
                 onNavigateBack = onNavigateBack,
                 actions = {
                     TextButton(
@@ -140,10 +140,10 @@ private fun CarEditScreenContent(
                 SectionHeader(title = "必須項目")
 
                 FormField(
-                    label = "愛車の名前",
+                    label = "愛車の表示名",
                     value = uiState.carName,
                     onValueChange = onCarNameChanged,
-                    placeholder = "例：マイシビック",
+                    placeholder = "マイシビック",
                     isRequired = true,
                     errorMessage = uiState.carNameError,
                     enabled = !uiState.isSaving
@@ -153,7 +153,7 @@ private fun CarEditScreenContent(
                     label = "メーカー",
                     value = uiState.carManufacturer,
                     onValueChange = onCarManufacturerChanged,
-                    placeholder = "例：ホンダ",
+                    placeholder = "ホンダ",
                     isRequired = true,
                     errorMessage = uiState.carManufacturerError,
                     enabled = !uiState.isSaving
@@ -163,7 +163,7 @@ private fun CarEditScreenContent(
                     label = "車種",
                     value = uiState.carModel,
                     onValueChange = onCarModelChanged,
-                    placeholder = "例：シビック",
+                    placeholder = "シビック",
                     isRequired = true,
                     errorMessage = uiState.carModelError,
                     enabled = !uiState.isSaving
@@ -173,7 +173,7 @@ private fun CarEditScreenContent(
                     label = "年式",
                     value = uiState.carYear,
                     onValueChange = onCarYearChanged,
-                    placeholder = "例：2021",
+                    placeholder = "2021",
                     keyboardType = KeyboardType.Number,
                     isRequired = true,
                     errorMessage = uiState.carYearError,
@@ -188,7 +188,7 @@ private fun CarEditScreenContent(
                     label = "現在の走行距離",
                     value = uiState.carMileage,
                     onValueChange = onCarMileageChanged,
-                    placeholder = "例：50000",
+                    placeholder = "50000",
                     keyboardType = KeyboardType.Number,
                     errorMessage = uiState.carMileageError,
                     enabled = !uiState.isSaving
@@ -198,7 +198,7 @@ private fun CarEditScreenContent(
                     label = "納車時走行距離",
                     value = uiState.carInitialMileage,
                     onValueChange = onCarInitialMileageChanged,
-                    placeholder = "例：0",
+                    placeholder = "0",
                     keyboardType = KeyboardType.Number,
                     enabled = !uiState.isSaving
                 )
