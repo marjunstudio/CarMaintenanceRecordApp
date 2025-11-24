@@ -17,13 +17,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
@@ -44,13 +40,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import to.msn.wings.carmaintenancerecord.domain.model.Maintenance
 import to.msn.wings.carmaintenancerecord.domain.model.MaintenanceType
+import to.msn.wings.carmaintenancerecord.ui.components.AppTopBar
 import to.msn.wings.carmaintenancerecord.ui.theme.CarMaintenanceRecordTheme
 import to.msn.wings.carmaintenancerecord.util.formatTimestamp
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaintenanceListScreen(
-    onNavigateBack: () -> Unit = {},
     onNavigateToDetail: (Long) -> Unit = {},
     onNavigateToAdd: () -> Unit = {},
     viewModel: MaintenanceListViewModel = hiltViewModel()
@@ -68,16 +63,8 @@ fun MaintenanceListScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("メンテナンス履歴") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "戻る"
-                        )
-                    }
-                }
+            AppTopBar(
+                title = "メンテナンス履歴"
             )
         },
         floatingActionButton = {
@@ -329,41 +316,71 @@ private fun EmptyState(
 
 // ========== Previews ==========
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "メンテナンス履歴画面（TopBar含む）")
 @Composable
-private fun TimelineItemPreview() {
+private fun MaintenanceListScreenPreview() {
     CarMaintenanceRecordTheme {
-        Column {
-            TimelineItem(
-                maintenance = Maintenance(
-                    id = 1L,
-                    carId = 1L,
-                    type = MaintenanceType.OIL_CHANGE,
-                    date = System.currentTimeMillis(),
-                    mileage = 55000,
-                    cost = 8500,
-                    shop = null,
-                    memo = null
-                ),
-                isFirst = true,
-                isLast = false,
-                onClick = {}
-            )
-            TimelineItem(
-                maintenance = Maintenance(
-                    id = 2L,
-                    carId = 1L,
-                    type = MaintenanceType.LEGAL_INSPECTION,
-                    date = System.currentTimeMillis() - 15552000000L,
-                    mileage = 48000,
-                    cost = 25000,
-                    shop = null,
-                    memo = null
-                ),
-                isFirst = false,
-                isLast = true,
-                onClick = {}
-            )
+        Scaffold(
+            topBar = {
+                AppTopBar(
+                    title = "メンテナンス履歴",
+                    onNavigateBack = {}
+                )
+            },
+            floatingActionButton = {
+                FloatingActionButton(onClick = {}) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "メンテナンス記録を追加"
+                    )
+                }
+            }
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(2) { index ->
+                        if (index == 0) {
+                            TimelineItem(
+                                maintenance = Maintenance(
+                                    id = 1L,
+                                    carId = 1L,
+                                    type = MaintenanceType.OIL_CHANGE,
+                                    date = System.currentTimeMillis(),
+                                    mileage = 55000,
+                                    cost = 8500,
+                                    shop = "オートバックス",
+                                    memo = null
+                                ),
+                                isFirst = true,
+                                isLast = false,
+                                onClick = {}
+                            )
+                        } else {
+                            TimelineItem(
+                                maintenance = Maintenance(
+                                    id = 2L,
+                                    carId = 1L,
+                                    type = MaintenanceType.LEGAL_INSPECTION,
+                                    date = System.currentTimeMillis() - 15552000000L,
+                                    mileage = 48000,
+                                    cost = 25000,
+                                    shop = null,
+                                    memo = null
+                                ),
+                                isFirst = false,
+                                isLast = true,
+                                onClick = {}
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
