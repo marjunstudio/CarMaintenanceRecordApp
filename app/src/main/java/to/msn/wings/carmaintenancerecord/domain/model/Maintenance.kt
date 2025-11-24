@@ -11,8 +11,6 @@ package to.msn.wings.carmaintenancerecord.domain.model
  * @property type メンテナンスの種別
  * @property date 実施日時（Unixタイムスタンプ、ミリ秒）
  * @property mileage 実施時の走行距離（km）
- * @property cost 費用（円）、未入力の場合は null
- * @property shop 実施店舗名、未入力の場合は null
  * @property memo メモ、未入力の場合は null
  * @property createdAt 作成日時（Unixタイムスタンプ、ミリ秒）
  * @property updatedAt 更新日時（Unixタイムスタンプ、ミリ秒）
@@ -23,25 +21,11 @@ data class Maintenance(
     val type: MaintenanceType,
     val date: Long,
     val mileage: Int,
-    val cost: Int? = null,
-    val shop: String? = null,
     val memo: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
     fun isNew(): Boolean = id == 0L
 
-    fun hasCost(): Boolean = cost != null && cost > 0
-
     fun hasMemo(): Boolean = !memo.isNullOrBlank()
-
-    fun hasShop(): Boolean = !shop.isNullOrBlank()
-
-    fun getCostDisplay(): String {
-        return if (hasCost()) {
-            "${String.format("%,d", cost)}円"
-        } else {
-            "-"
-        }
-    }
 }

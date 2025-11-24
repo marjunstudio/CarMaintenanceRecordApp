@@ -101,24 +101,6 @@ class MaintenanceDetailViewModel @Inject constructor(
     }
 
     /**
-     * 費用を更新
-     *
-     * @param cost 新しい費用のテキスト
-     */
-    fun updateCost(cost: String) {
-        _uiState.update { it.copy(costText = cost) }
-    }
-
-    /**
-     * 実施店舗を更新
-     *
-     * @param shop 新しい実施店舗のテキスト
-     */
-    fun updateShop(shop: String) {
-        _uiState.update { it.copy(shopText = shop) }
-    }
-
-    /**
      * メモを更新
      *
      * @param memo 新しいメモのテキスト

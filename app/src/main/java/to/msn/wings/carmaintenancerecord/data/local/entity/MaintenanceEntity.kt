@@ -17,8 +17,6 @@ import androidx.room.PrimaryKey
  * @property type メンテナンス種別（MaintenanceTypeのname）
  * @property date 実施日時（Unixタイムスタンプ、ミリ秒）
  * @property mileage 実施時の走行距離（km）
- * @property cost 費用（円）、未入力の場合は null
- * @property shop 実施店舗名、未入力の場合は null
  * @property memo メモ、未入力の場合は null
  * @property createdAt 作成日時（Unixタイムスタンプ、ミリ秒）
  * @property updatedAt 更新日時（Unixタイムスタンプ、ミリ秒）
@@ -53,12 +51,6 @@ data class MaintenanceEntity(
 
     @ColumnInfo(name = "mileage")
     val mileage: Int,
-
-    @ColumnInfo(name = "cost")
-    val cost: Int?,
-
-    @ColumnInfo(name = "shop")
-    val shop: String?,
 
     @ColumnInfo(name = "memo")
     val memo: String?,

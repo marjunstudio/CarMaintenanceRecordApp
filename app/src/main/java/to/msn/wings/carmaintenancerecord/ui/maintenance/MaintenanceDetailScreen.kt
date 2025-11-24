@@ -90,8 +90,6 @@ fun MaintenanceDetailScreen(
                     onTypeChange = viewModel::updateType,
                     onDateChange = viewModel::updateDate,
                     onMileageChange = viewModel::updateMileage,
-                    onCostChange = viewModel::updateCost,
-                    onShopChange = viewModel::updateShop,
                     onMemoChange = viewModel::updateMemo,
                     onSave = viewModel::saveMaintenance,
                     modifier = Modifier.fillMaxSize()
@@ -111,8 +109,6 @@ private fun MaintenanceForm(
     onTypeChange: (MaintenanceType) -> Unit,
     onDateChange: (Long) -> Unit,
     onMileageChange: (String) -> Unit,
-    onCostChange: (String) -> Unit,
-    onShopChange: (String) -> Unit,
     onMemoChange: (String) -> Unit,
     onSave: () -> Unit,
     modifier: Modifier = Modifier
@@ -150,33 +146,6 @@ private fun MaintenanceForm(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        )
-
-        // 費用
-        OutlinedTextField(
-            value = uiState.costText,
-            onValueChange = onCostChange,
-            label = { Text("金額 (任意)") },
-            placeholder = { Text("0") },
-            leadingIcon = {
-                Text(
-                    text = "¥",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        // 実施店舗
-        OutlinedTextField(
-            value = uiState.shopText,
-            onValueChange = onShopChange,
-            label = { Text("実施店舗 (任意)") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
         )
 
         // メモ
@@ -332,15 +301,11 @@ private fun MaintenanceFormPreview() {
                 selectedType = MaintenanceType.OIL_CHANGE,
                 dateMillis = System.currentTimeMillis(),
                 mileageText = "50000",
-                costText = "5000",
-                shopText = "オートバックス",
                 memoText = "定期メンテナンス"
             ),
             onTypeChange = {},
             onDateChange = {},
             onMileageChange = {},
-            onCostChange = {},
-            onShopChange = {},
             onMemoChange = {},
             onSave = {}
         )

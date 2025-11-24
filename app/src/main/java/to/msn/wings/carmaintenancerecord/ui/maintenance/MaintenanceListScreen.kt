@@ -274,16 +274,6 @@ private fun TimelineCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-            // 費用
-            if (maintenance.hasCost()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = maintenance.getCostDisplay(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
-            }
         }
     }
 }
@@ -353,8 +343,6 @@ private fun MaintenanceListScreenPreview() {
                                     type = MaintenanceType.OIL_CHANGE,
                                     date = System.currentTimeMillis(),
                                     mileage = 55000,
-                                    cost = 8500,
-                                    shop = "オートバックス",
                                     memo = null
                                 ),
                                 isFirst = true,
@@ -369,8 +357,6 @@ private fun MaintenanceListScreenPreview() {
                                     type = MaintenanceType.LEGAL_INSPECTION,
                                     date = System.currentTimeMillis() - 15552000000L,
                                     mileage = 48000,
-                                    cost = 25000,
-                                    shop = null,
                                     memo = null
                                 ),
                                 isFirst = false,

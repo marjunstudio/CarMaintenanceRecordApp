@@ -11,8 +11,6 @@ fun MaintenanceEntity.toDomain(): Maintenance {
         type = MaintenanceType.valueOf(type),
         date = date,
         mileage = mileage,
-        cost = cost,
-        shop = shop,
         memo = memo,
         createdAt = createdAt,
         updatedAt = updatedAt
@@ -26,8 +24,6 @@ fun Maintenance.toEntity(): MaintenanceEntity {
         type = type.name,
         date = date,
         mileage = mileage,
-        cost = cost,
-        shop = shop,
         memo = memo,
         createdAt = createdAt,
         updatedAt = updatedAt
