@@ -354,7 +354,7 @@ private fun MaintenanceListScreenPreview() {
                                 maintenance = Maintenance(
                                     id = 2L,
                                     carId = 1L,
-                                    type = MaintenanceType.LEGAL_INSPECTION,
+                                    type = MaintenanceType.TIRE_CHANGE,
                                     date = System.currentTimeMillis() - 15552000000L,
                                     mileage = 48000,
                                     memo = null

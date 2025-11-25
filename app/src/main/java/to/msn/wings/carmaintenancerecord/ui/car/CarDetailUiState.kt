@@ -43,14 +43,14 @@ data class NextMaintenance(
             remainingDistance != null -> {
                 when {
                     remainingDistance <= 0 -> "実施時期です"
-                    remainingDistance < 1000 -> "残り ${remainingDistance} km"
-                    else -> "残り ${String.format("%.1f", remainingDistance / 1000.0)} 千km"
+                    remainingDistance < 1000 -> "残り $remainingDistance km"
+                    else -> "残り $remainingDistance km"
                 }
             }
             remainingDays != null -> {
                 when {
                     remainingDays <= 0 -> "実施時期です"
-                    remainingDays < 30 -> "残り ${remainingDays} 日"
+                    remainingDays < 30 -> "残り $remainingDays 日"
                     remainingDays < 365 -> "残り ${remainingDays / 30} ヶ月"
                     else -> "残り ${String.format("%.1f", remainingDays / 365.0)} 年"
                 }

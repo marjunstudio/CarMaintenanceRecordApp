@@ -597,11 +597,6 @@ private fun CarDetailScreenPreview() {
                         remainingDistance = 2800,
                         progressPercentage = 0.72f
                     ),
-                    NextMaintenance(
-                        type = MaintenanceType.VEHICLE_INSPECTION,
-                        remainingDays = 120,
-                        progressPercentage = 0.67f
-                    )
                 ),
                 isLoading = false,
                 errorMessage = null
