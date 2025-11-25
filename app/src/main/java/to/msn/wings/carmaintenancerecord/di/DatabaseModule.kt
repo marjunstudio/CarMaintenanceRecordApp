@@ -10,6 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import to.msn.wings.carmaintenancerecord.data.local.AppDatabase
 import to.msn.wings.carmaintenancerecord.data.local.dao.CarDao
 import to.msn.wings.carmaintenancerecord.data.local.dao.MaintenanceDao
+import to.msn.wings.carmaintenancerecord.data.local.dao.MaintenanceIntervalSettingDao
 import javax.inject.Singleton
 
 @Module
@@ -40,5 +41,11 @@ object DatabaseModule {
     @Singleton
     fun provideMaintenanceDao(database: AppDatabase): MaintenanceDao {
         return database.maintenanceDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMaintenanceIntervalSettingDao(database: AppDatabase): MaintenanceIntervalSettingDao {
+        return database.maintenanceIntervalSettingDao()
     }
 }

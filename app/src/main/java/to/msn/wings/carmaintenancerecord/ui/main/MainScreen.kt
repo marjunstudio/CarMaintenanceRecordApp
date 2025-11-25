@@ -26,6 +26,7 @@ import to.msn.wings.carmaintenancerecord.ui.maintenance.MaintenanceDetailScreen
 import to.msn.wings.carmaintenancerecord.ui.maintenance.MaintenanceListScreen
 import to.msn.wings.carmaintenancerecord.ui.navigation.Screen
 import to.msn.wings.carmaintenancerecord.ui.settings.SettingsScreen
+import to.msn.wings.carmaintenancerecord.ui.settings.maintenance.MaintenanceIntervalSettingScreen
 
 @Composable
 fun MainScreen() {
@@ -160,6 +161,14 @@ fun MainScreen() {
 
             composable(route = Screen.Settings.route) {
                 SettingsScreen()
+            }
+
+            composable(route = Screen.MaintenanceIntervalSetting.route) {
+                MaintenanceIntervalSettingScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
             }
         }
     }

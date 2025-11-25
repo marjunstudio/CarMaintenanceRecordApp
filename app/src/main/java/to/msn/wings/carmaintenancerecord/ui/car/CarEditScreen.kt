@@ -180,19 +180,20 @@ private fun CarEditScreenContent(
                     enabled = !uiState.isSaving
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                SectionHeader(title = "任意項目")
-
                 FormField(
                     label = "現在の走行距離",
                     value = uiState.carMileage,
                     onValueChange = onCarMileageChanged,
                     placeholder = "50000",
                     keyboardType = KeyboardType.Number,
+                    isRequired = true,
                     errorMessage = uiState.carMileageError,
                     enabled = !uiState.isSaving
                 )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                SectionHeader(title = "任意項目")
 
                 FormField(
                     label = "納車時走行距離",

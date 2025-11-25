@@ -46,4 +46,9 @@ sealed class Screen(val route: String) {
      * 設定画面
      */
     data object Settings : Screen("settings")
+
+    /**
+     * メンテナンス周期設定画面
+     */
+    data object MaintenanceIntervalSetting : Screen("maintenance_interval_setting")
 }

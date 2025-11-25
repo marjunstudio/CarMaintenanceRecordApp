@@ -6,6 +6,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import to.msn.wings.carmaintenancerecord.data.repository.CarRepository
 import to.msn.wings.carmaintenancerecord.data.repository.CarRepositoryImpl
+import to.msn.wings.carmaintenancerecord.data.repository.MaintenanceIntervalSettingRepository
+import to.msn.wings.carmaintenancerecord.data.repository.MaintenanceIntervalSettingRepositoryImpl
 import to.msn.wings.carmaintenancerecord.data.repository.MaintenanceRepository
 import to.msn.wings.carmaintenancerecord.data.repository.MaintenanceRepositoryImpl
 import to.msn.wings.carmaintenancerecord.data.repository.UserPreferencesRepository
@@ -27,6 +29,12 @@ abstract class RepositoryModule {
     abstract fun bindMaintenanceRepository(
         maintenanceRepositoryImpl: MaintenanceRepositoryImpl
     ): MaintenanceRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMaintenanceIntervalSettingRepository(
+        maintenanceIntervalSettingRepositoryImpl: MaintenanceIntervalSettingRepositoryImpl
+    ): MaintenanceIntervalSettingRepository
 
     @Binds
     @Singleton

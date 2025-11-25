@@ -15,17 +15,33 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
+ * メンテナンス管理単位の種類
+ */
+enum class IntervalUnit {
+    /** 距離（km）のみで管理 */
+    DISTANCE_ONLY,
+    /** 日数のみで管理 */
+    DAYS_ONLY,
+    /** 両方で管理可能 */
+    BOTH,
+    /** 管理単位なし（その他） */
+    NONE
+}
+
+/**
  * メンテナンス種別を表すEnum
  *
  * @property displayName 表示用の日本語名
  * @property defaultIntervalKm デフォルトのメンテナンス間隔（km単位）、null の場合は距離ベースではない
  * @property defaultIntervalDays デフォルトのメンテナンス間隔（日数単位）、null の場合は日数ベースではない
+ * @property intervalUnit 管理単位の種類
  * @property icon 表示用のアイコン
  */
 enum class MaintenanceType(
     val displayName: String,
     val defaultIntervalKm: Int?,
     val defaultIntervalDays: Int?,
+    val intervalUnit: IntervalUnit,
     val icon: ImageVector
 ) {
     /**
@@ -36,6 +52,7 @@ enum class MaintenanceType(
         displayName = "オイル交換",
         defaultIntervalKm = 5000,
         defaultIntervalDays = null,
+        intervalUnit = IntervalUnit.DISTANCE_ONLY,
         icon = Icons.Default.Build
     ),
 
@@ -47,6 +64,7 @@ enum class MaintenanceType(
         displayName = "オイルフィルター交換",
         defaultIntervalKm = 10000,
         defaultIntervalDays = null,
+        intervalUnit = IntervalUnit.DISTANCE_ONLY,
         icon = Icons.Default.FilterAlt
     ),
 
@@ -58,6 +76,7 @@ enum class MaintenanceType(
         displayName = "タイヤ交換",
         defaultIntervalKm = 40000,
         defaultIntervalDays = null,
+        intervalUnit = IntervalUnit.DISTANCE_ONLY,
         icon = Icons.Default.DirectionsCar
     ),
 
@@ -69,6 +88,7 @@ enum class MaintenanceType(
         displayName = "タイヤローテーション",
         defaultIntervalKm = 10000,
         defaultIntervalDays = null,
+        intervalUnit = IntervalUnit.DISTANCE_ONLY,
         icon = Icons.Default.Cached
     ),
 
@@ -80,6 +100,7 @@ enum class MaintenanceType(
         displayName = "ブレーキパッド交換",
         defaultIntervalKm = 30000,
         defaultIntervalDays = null,
+        intervalUnit = IntervalUnit.DISTANCE_ONLY,
         icon = Icons.Default.Warning
     ),
 
@@ -91,6 +112,7 @@ enum class MaintenanceType(
         displayName = "バッテリー交換",
         defaultIntervalKm = null,
         defaultIntervalDays = 1095,
+        intervalUnit = IntervalUnit.DAYS_ONLY,
         icon = Icons.Default.BatteryChargingFull
     ),
 
@@ -102,29 +124,8 @@ enum class MaintenanceType(
         displayName = "エアコンフィルター交換",
         defaultIntervalKm = null,
         defaultIntervalDays = 365,
+        intervalUnit = IntervalUnit.DAYS_ONLY,
         icon = Icons.Default.Air
-    ),
-
-    /**
-     * 車検
-     * 推奨: 2年（730日）ごと
-     */
-    VEHICLE_INSPECTION(
-        displayName = "車検",
-        defaultIntervalKm = null,
-        defaultIntervalDays = 730,
-        icon = Icons.Default.FactCheck
-    ),
-
-    /**
-     * 法定12ヶ月点検
-     * 推奨: 1年（365日）ごと
-     */
-    LEGAL_INSPECTION(
-        displayName = "法定12ヶ月点検",
-        defaultIntervalKm = null,
-        defaultIntervalDays = 365,
-        icon = Icons.Default.Assignment
     ),
 
     /**
@@ -135,6 +136,7 @@ enum class MaintenanceType(
         displayName = "ワイパー交換",
         defaultIntervalKm = null,
         defaultIntervalDays = 365,
+        intervalUnit = IntervalUnit.DAYS_ONLY,
         icon = Icons.Default.CleaningServices
     ),
 
@@ -146,6 +148,7 @@ enum class MaintenanceType(
         displayName = "その他",
         defaultIntervalKm = null,
         defaultIntervalDays = null,
+        intervalUnit = IntervalUnit.NONE,
         icon = Icons.Default.MoreHoriz
     );
 
