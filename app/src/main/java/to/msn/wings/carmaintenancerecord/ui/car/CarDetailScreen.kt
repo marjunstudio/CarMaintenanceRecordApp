@@ -110,7 +110,7 @@ private fun CarDetailScreenContent(
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "マイガレージ",
+                title = uiState.car?.name ?: "マイガレージ",
                 actions = {
                     Box {
                         var showSettingsMenu by remember { mutableStateOf(false) }
